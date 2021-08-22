@@ -59,7 +59,7 @@ end
 md"Para implementar la simulación en un lenguaje de computación científica, resulta util vectorizar la expresión del proceso ARMA."
 
 # ╔═╡ c9a885da-3f5f-469a-8302-e207d7a3da08
-L"Y_n=
+L"Y_n=-
 \begin{bmatrix}
 \alpha_{1} & \alpha_{2} & \cdots & \alpha_{q}
 \end{bmatrix}
@@ -82,9 +82,15 @@ function ARMA(α, β, W)
 	N = length(W)
 	Y = copy(W)
     for n in 1:N
-        Y[n] = (n-q>0 ? α'*Y[n-1:-1:n-q] : 0) + (n-p+1>0 ? β'*W[n:-1:n-p+1] : 0)
+        Y[n] = - (n-q>0 ? α'*Y[n-1:-1:n-q] : 0) + (n-p+1>0 ? β'*W[n:-1:n-p+1] : 0)
     end
     return Y
+end
+
+# ╔═╡ 13d2ee83-8d44-4670-8840-b3ad7f2de6ed
+begin
+	U = [1 2 3 4 5 6]
+	U[6:-1:4]
 end
 
 # ╔═╡ ec60d196-0361-4d4d-abb5-e5ff0f095e6e
@@ -171,11 +177,14 @@ latexify(:(H(z)=1/(1+0.8z^-1+0.4z^-2-0.2z^-3-0.1z^-4)))
 # ╔═╡ 56d2552a-8225-45be-862d-69cd63d1b4c0
 md"Se instancia esta función de transferencia, junto con algunas otras, usando la librería ControlSystems.jl"
 
+# ╔═╡ e406ff6d-e7a3-4f3e-b05e-3a6889dccc61
+md"Se generan algunas realizaciones de procesos autoregresivos de orden 4"
+
 # ╔═╡ 0dd331de-759c-436a-b0a6-0445abef0225
 begin
 	α5 = [0.8, 0.4, -0.2, -0.1]
-	α6 = [0.4, -0.4, -0.2, -0.2]
-	α7 = [-0.8, -0.4, 0.1, -0.1]
+	α6 = [0.4, -0.4, -0.2, 0.2]
+	α7 = [-0.8, -0.1, 0.1, -0.1]
 	α8 = [0.2, 0.1, -0.1, 0.6]
 	Y5 = ARMA(α5, [1], W)
 	Y6 = ARMA(α6, [1], W)
@@ -185,11 +194,10 @@ end
 
 # ╔═╡ 72fa3402-1501-4c8b-b90a-f185ccae0cca
 begin
-	β5 = [1]
-	H6 = tf([β5; zeros(length(α5)+1-length(β5))], [1; α6],1)
-	H7 = tf([β5; zeros(length(α5)+1-length(β5))], [1; α7],1)
-	H8 = tf([β5; zeros(length(α5)+1-length(β5))], [1; α8],1)
-	H5 = tf([β5; zeros(length(α5)+1-length(β5))], [1; α5],1)
+	H6 = tf([1; zeros(length(α5))], [1; α6],1)
+	H7 = tf([1; zeros(length(α7))], [1; α7],1)
+	H8 = tf([1; zeros(length(α8))], [1; α8],1)
+	H5 = tf([1; zeros(length(α5))], [1; α5],1)
 end
 
 # ╔═╡ 727b5f51-8f4f-454b-b4bf-78b603670116
@@ -198,18 +206,25 @@ begin
 	Ryy6 = ARMA_corr(α6, [1], N, nReal)
 	Ryy7 = ARMA_corr(α7, [1], N, nReal)
 	Ryy8 = ARMA_corr(α8, [1], N, nReal)
+	md"### Autocorrelación:"
 end
 
+# ╔═╡ 4e6833ad-502d-4fb6-b8d4-cf229fb321c5
+md"### Polos y ceros:"
+
+# ╔═╡ e81acb08-c2f7-4f4c-aeaa-755a019045fc
+md"### Respuesta en frecuencia:"
+
 # ╔═╡ 4fe9cc74-a00c-4ea8-9d0d-db11d17734fb
-md"### Procesos de Media Móvil
+md"## Procesos de Media Móvil
 Repetimos los análisis anteriores considerando procesos de media móvil, $q = 0,\, p \ne 0$"
 
 # ╔═╡ e3ab60ef-0357-451b-8b2f-f388123a54fe
 begin
 	β9  = [1, 1]
 	β10 = [1, -1]
-	β11 = [0.8, 0.4, 0.2, 0.1]
-	β12 = [0.8, -0.4, 0.2, -0.1]
+	β11 = [0.25, 0.25, 0.25, 0.25]
+	β12 = [0.5, -0.5, 0.5, -0.5]
 	Y9  = ARMA([0], β9 , W)
 	Y10 = ARMA([0], β10, W)
 	Y11 = ARMA([0], β11, W)
@@ -222,6 +237,55 @@ begin
 	Ryy10 = ARMA_corr([0], β10, N, nReal)
 	Ryy11 = ARMA_corr([0], β11, N, nReal)
 	Ryy12 = ARMA_corr([0], β12, N, nReal)
+	md"### Autocorrelación:"
+end
+
+# ╔═╡ c7dd8817-44fe-436d-ab0e-c7bd45bca256
+md"### Polos y Ceros:"
+
+# ╔═╡ 78b91333-408f-4cdb-8ab2-d4b3936b3e45
+md"## Procesos ARMA
+Repetimos los análisis anteriores considerando el proceso ARMA en su totalidad, particularmente el caso con $q = 2,\, p = 2$"
+
+# ╔═╡ 5c3a36b8-1195-495e-940c-f8e3c1d0574a
+begin
+	β13 = [0.5, 0.5, 0.5]
+	β14 = [0.5, -0.5, 0.5]
+	β15 = [1, 0.5, 0.25]
+	β16 = [0.25, 0.5, 0.25]
+	α13 = [0.75, 0.75]
+	α14 = [0.5, -0.125]
+	α15 = [0.25, 0.25]
+	α16 = [0.5, -0.5]
+	Y13 = ARMA(α13, β13, W)
+	Y14 = ARMA(α14, β14, W)
+	Y15 = ARMA(α15, β15, W)
+	Y16 = ARMA(α16, β16, W)
+end
+
+# ╔═╡ 3c63dae9-aef8-481a-9405-93922e9be05f
+begin
+	Ryy13 = ARMA_corr(α13, β13, N, nReal)
+	Ryy14 = ARMA_corr(α14, β14, N, nReal)
+	Ryy15 = ARMA_corr(α15, β15, N, nReal)
+	Ryy16 = ARMA_corr(α16, β16, N, nReal)
+	md"### Autocorrelación:"
+end
+
+# ╔═╡ 49a7bbe6-bd42-4815-bb63-e03b1330160c
+md"### Polos y Ceros 
+
+Para estos procesos ARMA donde $\alpha=\begin{bmatrix}\alpha_1 & \alpha_2 \end{bmatrix}$ y $\beta=\begin{bmatrix}\beta_0 & \beta_1 & \beta_2 \end{bmatrix}$, la transferencia resulta"
+
+# ╔═╡ 08918cbe-5313-41f4-8eef-8a0feb672c31
+latexify(:(H(z)=(β_0+β_1*z^-1+β_2*z^-2) /(1+α_1*z^-1+α_2*z^-2)))
+
+# ╔═╡ fdfb4865-ee77-446b-a57e-b579150e2084
+begin
+		H13 = tf(β13, [1; α13],1)
+		H14 = tf(β14, [1; α14],1)
+		H15 = tf(β15, [1; α15],1)
+		H16 = tf(β16, [1; α16],1)
 end
 
 # ╔═╡ b69f9cbc-b116-4206-9ede-2a3a2d6bc135
@@ -237,8 +301,8 @@ end
 
 # ╔═╡ 4530598e-5fe7-4e7e-99ca-ff1adb1a6040
 begin
-		plt = :seaborn_deep6
-		cgr = :acton
+	plt = :seaborn_deep6
+	cgr = :acton
 	DarkMode.enable(theme="shadowfox")
 end
 
@@ -325,6 +389,48 @@ begin
 	plot(pR9, pR10, pR11, pR12, layout=(2,2), size=(800,800))
 end
 
+# ╔═╡ 10b18bae-62d7-447c-9abd-4dceae82c707
+begin
+	H9  = tf(β9 , [1; zeros(length(β9 )-1)],1)
+	H10 = tf(β10, [1; zeros(length(β10)-1)],1)
+	H11 = tf(β11, [1; zeros(length(β11)-1)],1)
+	H12 = tf(β12, [1; zeros(length(β12)-1)],1)
+	pZ9  = pzmap(H9 , title="β="*string(β9 ), ticks=false, palette=plt)
+	pZ10 = pzmap(H10, title="β="*string(β10), ticks=false, palette=plt)
+	pZ11 = pzmap(H11, title="β="*string(β11), ticks=false, palette=plt)
+	pZ12 = pzmap(H12, title="β="*string(β12), ticks=false, palette=plt)
+	plot(pZ9, pZ10, pZ11, pZ12, layout=(2,2), size=(800,800))
+end
+
+# ╔═╡ 208bc2fd-4033-4027-b204-5e6110adb5e0
+begin 
+	theme(:juno)
+	p13 = plot([W Y13], label=["W" "Y"], title="α="*string(α13)*" β="*string(β13), palette=plt)
+	p14 = plot([W Y14], label=["W" "Y"], title="α="*string(α14)*" β="*string(β14), palette=plt)
+	p15 = plot([W Y15], label=["W" "Y"], title="α="*string(α15)*" β="*string(β15), palette=plt)
+	p16 = plot([W Y16], label=["W" "Y"], title="α="*string(α16)*" β="*string(β16), palette=plt)
+	plot(p13, p14, p15, p16, layout=(2,2), size=(800,600))
+end
+
+# ╔═╡ 027c0c1a-8c98-4e05-a266-12a42b01b23e
+begin
+	theme(:juno)
+	pR13 = heatmap(1:N, 1:N, Ryy13, colorbar=false, title="α="*string(α13)*" β="*string(β13), c=cgr)
+	pR14 = heatmap(1:N, 1:N, Ryy14, colorbar=false, title="α="*string(α14)*" β="*string(β14), c=cgr)
+	pR15 = heatmap(1:N, 1:N, Ryy15, colorbar=false, title="α="*string(α15)*" β="*string(β15), c=cgr)
+	pR16 = heatmap(1:N, 1:N, Ryy16, colorbar=false, title="α="*string(α16)*" β="*string(β16), c=cgr)
+	plot(pR13, pR14, pR15, pR16, layout=(2,2), size=(800,800))
+end
+
+# ╔═╡ 6f549587-63b4-4e44-9f0c-001acb4045fc
+begin
+	pZ13 = pzmap(H13, title="α="*string(α13)*" β="*string(β13), ticks=false, palette=plt)
+	pZ14 = pzmap(H14, title="α="*string(α14)*" β="*string(β14), ticks=false, palette=plt)
+	pZ15 = pzmap(H15, title="α="*string(α15)*" β="*string(β15), ticks=false, palette=plt)
+	pZ16 = pzmap(H16, title="α="*string(α16)*" β="*string(β16), ticks=false, palette=plt)
+	plot(pZ13, pZ14, pZ15, pZ16, layout=(2,2), size=(800,800))
+end
+
 # ╔═╡ Cell order:
 # ╟─a479e8ea-beba-477d-9409-c5952f88beab
 # ╟─b9d08d19-ab2c-4ed8-b9c3-4cfd774a7875
@@ -333,6 +439,7 @@ end
 # ╟─3ab1a1d9-376b-4596-939b-886197e2ad7e
 # ╟─c9a885da-3f5f-469a-8302-e207d7a3da08
 # ╠═fde9f15f-9253-4e36-9bb9-db0108860f77
+# ╠═13d2ee83-8d44-4670-8840-b3ad7f2de6ed
 # ╟─ec60d196-0361-4d4d-abb5-e5ff0f095e6e
 # ╟─288d9139-6f59-425f-b6d7-83296239c48a
 # ╟─87d59f71-7d94-48b0-8097-3b4d731d2f63
@@ -350,17 +457,31 @@ end
 # ╟─95c76b56-69f3-4d46-964f-3509fc875a23
 # ╟─56d2552a-8225-45be-862d-69cd63d1b4c0
 # ╟─72fa3402-1501-4c8b-b90a-f185ccae0cca
+# ╟─e406ff6d-e7a3-4f3e-b05e-3a6889dccc61
 # ╠═0dd331de-759c-436a-b0a6-0445abef0225
 # ╟─943d6f92-75a5-4b1f-a206-a7bfd8b7d0bf
-# ╠═727b5f51-8f4f-454b-b4bf-78b603670116
-# ╠═ab2a1369-8952-4ca3-a13f-df7ca14f13cd
+# ╟─727b5f51-8f4f-454b-b4bf-78b603670116
+# ╟─ab2a1369-8952-4ca3-a13f-df7ca14f13cd
+# ╟─4e6833ad-502d-4fb6-b8d4-cf229fb321c5
 # ╠═c63d4613-c0a6-45c9-88a1-d718eea396ad
-# ╠═df1a9787-4cc3-4a70-b36e-586d00190f69
+# ╟─e81acb08-c2f7-4f4c-aeaa-755a019045fc
+# ╟─df1a9787-4cc3-4a70-b36e-586d00190f69
 # ╟─4fe9cc74-a00c-4ea8-9d0d-db11d17734fb
 # ╠═e3ab60ef-0357-451b-8b2f-f388123a54fe
-# ╠═fb0d90ce-9b20-45ce-98f7-f79014e0224c
-# ╠═96467507-b69a-4698-a7ae-cbb99d441a38
+# ╟─fb0d90ce-9b20-45ce-98f7-f79014e0224c
+# ╟─96467507-b69a-4698-a7ae-cbb99d441a38
 # ╠═12fb86d5-a41f-445b-8254-555f34629c12
+# ╟─c7dd8817-44fe-436d-ab0e-c7bd45bca256
+# ╟─10b18bae-62d7-447c-9abd-4dceae82c707
+# ╟─78b91333-408f-4cdb-8ab2-d4b3936b3e45
+# ╠═5c3a36b8-1195-495e-940c-f8e3c1d0574a
+# ╟─208bc2fd-4033-4027-b204-5e6110adb5e0
+# ╟─3c63dae9-aef8-481a-9405-93922e9be05f
+# ╟─027c0c1a-8c98-4e05-a266-12a42b01b23e
+# ╟─49a7bbe6-bd42-4815-bb63-e03b1330160c
+# ╟─08918cbe-5313-41f4-8eef-8a0feb672c31
+# ╟─fdfb4865-ee77-446b-a57e-b579150e2084
+# ╟─6f549587-63b4-4e44-9f0c-001acb4045fc
 # ╟─b69f9cbc-b116-4206-9ede-2a3a2d6bc135
 # ╟─451411e9-6eb1-4ad1-97cd-946300511c0d
 # ╟─53d9d2c0-0369-403e-8378-858663608a35
